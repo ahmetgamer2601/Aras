@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ev Dekorasyon & Mat Gri-Siyah 3D İç Mimari Planlayıcı</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js ve OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #181b20; }
+        ::-webkit-scrollbar-thumb { background: #333842; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #474e5d; }
+    </style>
+</head>
+<body class="h-full bg-[#121417] text-[#e2e8f0] flex flex-col overflow-hidden">
+
+    <!-- Üst Menü (Mat Gri-Siyah Karanlık Estetik) -->
+    <header class="bg-[#181b20] border-b border-[#262c36] px-6 py-3 flex items-center justify-between shrink-0 shadow-lg z-20">
+        <div class="flex items-center space-x-3">
+            <div class="bg-amber-600/20 border border-amber-500/40 p-2.5 rounded-xl text-amber-400 shadow-inner">
+                <i class="fa-solid fa-couch text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-tight text-slate-100">İç Mimari <span class="text-amber-500">3D Planlayıcı (Stüdyo)</span></h1>
+                <p class="text-xs text-slate-400">Mat Gri-Siyah & Bronz Tasarım Stüdyosu • IKEA, Koçtaş, Vivense & Trendyol</p>
+            </div>
+        </div>
+        
+        <!-- Üst Aksiyonlar -->
+        <div class="flex items-center space-x-3">
+            <button onclick="openModal('roomModal')" class="bg-[#21262d] hover:bg-[#30363d] text-slate-300 px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-2 border border-[#30363d] shadow-sm">
+                <i class="fa-solid fa-ruler-combined text-amber-400"></i>
+                <span>Oda Boyutları</span>
+            </button>
+            <button onclick="openModal('cartModal')" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold px-4 py-2 rounded-xl text-sm transition flex items-center space-x-2 shadow-lg shadow-amber-600/20">
+                <i class="fa-solid fa-shopping-cart"></i>
+                <span>Maliyet & Sepet (<span id="cartCount">0</span>)</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Ana İçerik Alanı -->
+    <div class="flex-1 flex overflow-hidden relative">
+        
+        <!-- Sol Kenar Çubuğu: Katalog & Düzenleme -->
+        <div class="w-88 bg-[#181b20]/95 backdrop-blur border-r border-[#262c36] flex flex-col z-10 shrink-0 shadow-xl" style="width: 370px;">
+            <!-- Sekme Başlıkları -->
+            <div class="flex border-b border-[#262c36] bg-[#121417]/50">
+                <button onclick="switchTab('catalog')" id="btnTabCatalog" class="flex-1 py-3 text-xs font-semibold text-amber-400 border-b-2 border-amber-500 transition"><i class="fa-solid fa-store mr-1"></i> Katalog</button>
+                <button onclick="switchTab('room')" id="btnTabRoom" class="flex-1 py-3 text-xs font-medium text-slate-400 hover:text-slate-200 transition border-b-2 border-transparent"><i class="fa-solid fa-paint-roller mr-1"></i> Oda Tasarımı</button>
+                <button onclick="switchTab('objects')" id="btnTabObjects" class="flex-1 py-3 text-xs font-medium text-slate-400 hover:text-slate-200 transition border-b-2 border-transparent"><i class="fa-solid fa-list-check mr-1"></i> Yerleşenler</button>
+            </div>
+
+            <!-- Sekme İçerikleri -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                
+                <!-- 1. Katalog Sekmesi -->
+                <div id="tabCatalog" class="space-y-4">
+                    <div class="flex flex-col space-y-2">
+                        <label class="text-xs font-medium text-slate-400">Kategori Filtresi</label>
+                        <div class="grid grid-cols-4 gap-1 bg-[#121417] p-1 rounded-xl border border-[#262c36]">
+                            <button onclick="filterCatalog('all')" class="cat-btn py-1.5 text-xs font-medium rounded-lg bg-amber-500 text-slate-950 font-semibold transition shadow-sm">Tümü</button>
+                            <button onclick="filterCatalog('oturma')" class="cat-btn py-1.5 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 transition">Oturma</button>
+                            <button onclick="filterCatalog('yatak')" class="cat-btn py-1.5 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 transition">Yatak</button>
+                            <button onclick="filterCatalog('dekor')" class="cat-btn py-1.5 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 transition">Dekor</button>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <input type="text" id="catalogSearch" oninput="searchCatalog()" placeholder="Mağaza veya ürün ara..." class="w-full bg-[#121417] border border-[#262c36] rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500">
+                        <i class="fa-solid fa-search absolute right-3 top-2.5 text-slate-500 text-xs"></i>
+                    </div>
+
+                    <!-- Katalog Liste -->
+                    <div id="catalogList" class="space-y-3">
+                        <!-- JS ile doldurulacak -->
+                    </div>
+                </div>
+
+                <!-- 2. Oda Özellikleri Sekmesi -->
+                <div id="tabRoom" class="hidden space-y-4">
+                    <div class="bg-[#121417] p-4 rounded-xl border border-[#262c36] space-y-3">
+                        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Zemin Kaplaması & Malzeme</h3>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="changeFloor('parke')" class="p-2.5 bg-[#181b20] border border-[#262c36] rounded-xl text-xs font-medium text-amber-400 hover:border-amber-500/50 transition flex flex-col items-center space-y-1">
+                                <i class="fa-solid fa-border-all text-amber-500"></i>
+                                <span>Meşe Parke</span>
+                            </button>
+                            <button onclick="changeFloor('fayans')" class="p-2.5 bg-[#181b20] border border-[#262c36] rounded-xl text-xs font-medium text-slate-300 hover:border-slate-500 transition flex flex-col items-center space-y-1">
+                                <i class="fa-solid fa-square text-slate-400"></i>
+                                <span>Mat Gri Taş</span>
+                            </button>
+                            <button onclick="changeFloor('halı')" class="p-2.5 bg-[#181b20] border border-[#262c36] rounded-xl text-xs font-medium text-slate-300 hover:border-stone-500 transition flex flex-col items-center space-y-1">
+                                <i class="fa-solid fa-rug text-stone-400"></i>
+                                <span>Antrasit Halı</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-[#121417] p-4 rounded-xl border border-[#262c36] space-y-3">
+                        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Duvar Boyası / Renk Seçenekleri</h3>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button onclick="changeWallColor('#181b20')" class="h-10 rounded-xl bg-[#181b20] border border-[#30363d] shadow-sm transition transform hover:scale-105" title="Koyu Antrasit"></button>
+                            <button onclick="changeWallColor('#1e293b')" class="h-10 rounded-xl bg-slate-800 border border-slate-700 shadow-sm transition transform hover:scale-105" title="Gece Mavisi"></button>
+                            <button onclick="changeWallColor('#27272a')" class="h-10 rounded-xl bg-zinc-800 border border-zinc-700 shadow-sm transition transform hover:scale-105" title="Koyu Gri"></button>
+                            <button onclick="changeWallColor('#292524')" class="h-10 rounded-xl bg-stone-800 border border-stone-700 shadow-sm transition transform hover:scale-105" title="Mat Kahve Tok"></button>
+                            <button onclick="changeWallColor('#064e3b')" class="h-10 rounded-xl bg-emerald-950 border border-emerald-800 shadow-sm transition transform hover:scale-105" title="Koyu Orman Yeşili"></button>
+                            <button onclick="changeWallColor('#311011')" class="h-10 rounded-xl bg-rose-950 border border-rose-900 shadow-sm transition transform hover:scale-105" title="Bordo Mat"></button>
+                            <button onclick="changeWallColor('#38bdf8')" class="h-10 rounded-xl bg-sky-400 border border-sky-300 shadow-sm transition transform hover:scale-105" title="Açık Kontrast"></button>
+                            <button onclick="changeWallColor('#e2e8f0')" class="h-10 rounded-xl bg-slate-200 border border-slate-300 shadow-sm transition transform hover:scale-105" title="Saf Beyaz Kontrast"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Eşyalarım Sekmesi -->
+                <div id="tabObjects" class="hidden space-y-3">
+                    <p class="text-xs text-slate-400">Odaya eklediğiniz detaylı 3D mobilyalar:</p>
+                    <div id="placedObjectsList" class="space-y-2">
+                        <!-- JS ile doldurulacak -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 3D Canvas Alanı (Mat Gri-Siyah Stüdyo Ortamı) -->
+        <div class="flex-1 relative bg-[#0b0d10]" id="canvasContainer">
+            <canvas id="renderCanvas" class="w-full h-full block"></canvas>
+
+            <!-- Kamera & Navigasyon Bilgi Kartı -->
+            <div class="absolute bottom-6 left-6 bg-[#181b20]/90 backdrop-blur border border-[#262c36] p-3.5 rounded-2xl shadow-2xl flex items-center space-x-4 z-10 text-xs text-slate-300">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-arrows-rotate text-amber-400 text-sm"></i>
+                    <span>Döndür: Sol Tık + Sürükle</span>
+                </div>
+                <div class="w-px h-4 bg-[#262c36]"></div>
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-magnifying-glass text-amber-400 text-sm"></i>
+                    <span>Yakınlaştır: Fare Tekeri</span>
+                </div>
+                <div class="w-px h-4 bg-[#262c36]"></div>
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-hand text-amber-400 text-sm"></i>
+                    <span>Eşya Taşı: Üzerine Tıkla & Sürükle</span>
+                </div>
+            </div>
+
+            <!-- Sağ Üst: Oda Metrekare & Özeti -->
+            <div class="absolute top-6 right-6 bg-[#181b20]/90 backdrop-blur border border-[#262c36] p-4 rounded-2xl shadow-2xl z-10 flex items-center space-x-6 text-xs">
+                <div>
+                    <p class="text-slate-400">Oda Boyutu</p>
+                    <p id="roomAreaDisplay" class="font-bold text-sm text-slate-100">25.0 m² (5m x 5m)</p>
+                </div>
+                <div class="w-px h-8 bg-[#262c36]"></div>
+                <div>
+                    <p class="text-slate-400">Toplam Eşya</p>
+                    <p id="totalItemsDisplay" class="font-bold text-sm text-amber-400">0 Adet</p>
+                </div>
+            </div>
+
+            <!-- Seçili Eşya Hızlı Düzenleme Paneli -->
+            <div id="selectedObjectPanel" class="absolute top-24 right-6 bg-[#181b20]/95 backdrop-blur border border-[#262c36] p-4 rounded-2xl shadow-2xl z-10 hidden w-72 space-y-3">
+                <div class="flex items-center justify-between border-b border-[#262c36] pb-2">
+                    <h4 id="selectedObjTitle" class="font-semibold text-sm text-slate-100">Eşya Adı</h4>
+                    <button onclick="deselectCurrentObject()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="space-y-1.5 text-xs text-slate-300">
+                    <p>Mağaza: <span id="selectedObjStore" class="text-amber-400 font-medium">-</span></p>
+                    <p>Ölçüler: <span id="selectedObjDimensions" class="text-slate-200 font-medium">-</span></p>
+                    <p>Fiyat: <span id="selectedObjPrice" class="text-emerald-400 font-bold">-</span></p>
+                </div>
+                <div class="pt-1 flex flex-col space-y-2">
+                    <a id="selectedObjLink" href="#" target="_blank" class="w-full bg-[#21262d] hover:bg-[#30363d] text-amber-400 py-2 rounded-xl text-xs font-medium transition border border-[#30363d] flex items-center justify-center space-x-1.5">
+                        <span>Mağaza Ürün Sayfasına Git</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="rotateSelectedObject()" class="bg-[#21262d] hover:bg-[#30363d] text-slate-200 py-2 rounded-xl text-xs font-medium transition border border-[#30363d] flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-rotate-right text-amber-400"></i>
+                            <span>Döndür (90°)</span>
+                        </button>
+                        <button onclick="deleteSelectedObject()" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 py-2 rounded-xl text-xs font-medium transition border border-rose-900/50 flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-trash"></i>
+                            <span>Kaldır</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal: Oda Boyutları -->
+    <div id="roomModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#181b20] border border-[#262c36] w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between border-b border-[#262c36] pb-3">
+                <h3 class="font-bold text-base text-slate-100 flex items-center space-x-2">
+                    <i class="fa-solid fa-ruler-combined text-amber-400"></i>
+                    <span>Oda Boyutlarını Ayarla</span>
+                </h3>
+                <button onclick="closeModal('roomModal')" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Oda Genişliği: <span id="widthVal" class="text-amber-400 font-bold">5</span> m</label>
+                    <input type="range" id="roomWidthInput" min="3" max="12" step="0.5" value="5" oninput="updateRoomDimensions()" class="w-full accent-amber-500 bg-[#121417]">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Oda Derinliği: <span id="depthVal" class="text-amber-400 font-bold">5</span> m</label>
+                    <input type="range" id="roomDepthInput" min="3" max="12" step="0.5" value="5" oninput="updateRoomDimensions()" class="w-full accent-amber-500 bg-[#121417]">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Tavan Yüksekliği: <span id="heightVal" class="text-amber-400 font-bold">3</span> m</label>
+                    <input type="range" id="roomHeightInput" min="2.5" max="4.5" step="0.25" value="3" oninput="updateRoomDimensions()" class="w-full accent-amber-500 bg-[#121417]">
+                </div>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button onclick="closeModal('roomModal')" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold px-5 py-2.5 rounded-xl text-sm transition shadow-lg shadow-amber-600/20">Uygula ve Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Alışveriş Sepeti & Maliyet Özeti -->
+    <div id="cartModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#181b20] border border-[#262c36] w-full max-w-xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-[#262c36] pb-3">
+                <h3 class="font-bold text-base text-slate-100 flex items-center space-x-2">
+                    <i class="fa-solid fa-shopping-bag text-amber-400"></i>
+                    <span>Alışveriş Sepeti & Toplam Maliyet</span>
+                </h3>
+                <button onclick="closeModal('cartModal')" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="cartItemsList" class="flex-1 overflow-y-auto space-y-3 pr-1">
+                <!-- JS ile dolacak -->
+            </div>
+            <div class="border-t border-[#262c36] pt-4 space-y-3">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-300">Toplam Tahmini Tutar:</span>
+                    <span id="cartTotalPrice" class="font-bold text-xl text-emerald-400">0 ₺</span>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeModal('cartModal')" class="bg-[#21262d] hover:bg-[#30363d] text-slate-300 px-4 py-2.5 rounded-xl text-sm font-medium transition border border-[#30363d]">Kapat</button>
+                    <button onclick="checkoutCart()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium transition shadow-lg shadow-emerald-600/20 flex items-center space-x-2">
+                        <i class="fa-solid fa-external-link-alt"></i>
+                        <span>Tüm Mağaza Linklerini Aç</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bildirim Çubuğu -->
+    <div id="messageToast" class="fixed bottom-6 right-6 bg-[#21262d] text-slate-100 border border-[#30363d] px-5 py-3 rounded-2xl shadow-2xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-3">
+        <i class="fa-solid fa-circle-check text-amber-400 text-lg"></i>
+        <span id="toastText" class="text-sm font-medium">İşlem başarılı</span>
+    </div>
+
+    <!-- JavaScript Uygulama Mantığı -->
+    <script>
+        // --- ZENGİN MAĞAZA & DETAYLI 3D MOBİLYA KATALOĞU ---
+        const catalogItems = [
+            {
+                id: 'ikea_landskrona',
+                name: 'IKEA LANDSKRONA 3lü Koltuk',
+                store: 'IKEA Türkiye',
+                category: 'oturma',
+                price: 24999,
+                dimensions: '204 x 89 x 78 cm',
+                link: 'https://www.ikea.com.tr/arama?q=landskrona+koltuk',
+                color: 0x334155,
+                type: 'sofa'
+            },
+            {
+                id: 'vivense_kose',
+                name: 'Vivense Lucca L Köşe Koltuk',
+                store: 'Vivense',
+                category: 'oturma',
+                price: 18500,
+                dimensions: '250 x 165 x 82 cm',
+                link: 'https://www.vivense.com/kose-koltuk.html',
+                color: 0x1e293b,
+                type: 'l_sofa'
+            },
+            {
+                id: 'koctas_berjer',
+                name: 'Koçtaş retro Berjer ve Ayak Uzatma',
+                store: 'Koçtaş',
+                category: 'oturma',
+                price: 5499,
+                dimensions: '85 x 85 x 90 cm',
+                link: 'https://www.koctas.com.tr/berjer/c/102003',
+                color: 0xb45309,
+                type: 'armchair'
+            },
+            {
+                id: 'koctas_tv',
+                name: 'Koçtaş Nora TV Ünitesi',
+                store: 'Koçtaş',
+                category: 'oturma',
+                price: 4799,
+                dimensions: '180 x 38 x 52 cm',
+                link: 'https://www.koctas.com.tr/tv-unitesi/c/102005',
+                color: 0x78350f,
+                type: 'tv_unit'
+            },
+            {
+                id: 'trendyol_sehpa',
+                name: 'Trendyol Home C Zigon Sehpa Seti',
+                store: 'Trendyol',
+                category: 'oturma',
+                price: 1450,
+                dimensions: '55 x 40 x 50 cm',
+                link: 'https://www.trendyol.com/zigon-sehpa-x-c-104085',
+                color: 0xd97706,
+                type: 'coffee_table'
+            },
+            {
+                id: 'ikea_malm_bed',
+                name: 'IKEA MALM Çift Kişilik Bazalı Yatak',
+                store: 'IKEA Türkiye',
+                category: 'yatak',
+                price: 16999,
+                dimensions: '160 x 200 x 100 cm',
+                link: 'https://www.ikea.com.tr/arama?q=malm+yatak',
+                color: 0x475569,
+                type: 'bed'
+            },
+            {
+                id: 'vivense_komodin',
+                name: 'Vivense Oslo Ahşap Komodin',
+                store: 'Vivense',
+                category: 'yatak',
+                price: 1250,
+                dimensions: '45 x 40 x 55 cm',
+                link: 'https://www.vivense.com/komodin.html',
+                color: 0x292524,
+                type: 'nightstand'
+            },
+            {
+                id: 'koctas_calisma',
+                name: 'Koçtaş Modern Çalışma Masası',
+                store: 'Koçtaş',
+                category: 'yatak',
+                price: 3450,
+                dimensions: '120 x 60 x 75 cm',
+                link: 'https://www.koctas.com.tr/calisma-masasi/c/102010',
+                color: 0x181b20,
+                type: 'desk'
+            },
+            {
+                id: 'koctas_kitaplik',
+                name: 'Koçtaş 5 Raflı Metal Kitaplık',
+                store: 'Koçtaş',
+                category: 'dekor',
+                price: 3290,
+                dimensions: '75 x 30 x 170 cm',
+                link: 'https://www.koctas.com.tr/kitaplik/c/102008',
+                color: 0x0f172a,
+                type: 'bookshelf'
+            },
+            {
+                id: 'trendyol_hali',
+                name: 'Trendyol Home Modern Dokuma Halı',
+                store: 'Trendyol',
+                category: 'dekor',
+                price: 2850,
+                dimensions: '200 x 300 cm',
+                link: 'https://www.trendyol.com/salon-hali-x-c-104002',
+                color: 0x334155,
+                type: 'rug'
+            },
+            {
+                id: 'ikea_lampa',
+                name: 'IKEA HEKTAR Zemin Lambaderi',
+                store: 'IKEA Türkiye',
+                category: 'dekor',
+                price: 2199,
+                dimensions: '45 x 45 x 180 cm',
+                link: 'https://www.ikea.com.tr/arama?q=lambader',
+                color: 0x1e293b,
+                type: 'lamp'
+            },
+            {
+                id: 'trendyol_bitki',
+                name: 'Trendyol Büyük Boy Monstera Bitkisi',
+                store: 'Trendyol',
+                category: 'dekor',
+                price: 950,
+                dimensions: '50 x 50 x 130 cm',
+                link: 'https://www.trendyol.com/yapay-cicek-x-c-104050',
+                color: 0x15803d,
+                type: 'plant'
+            }
+        ];
+
+        // --- UYGULAMA DURUMU ---
+        let scene, camera, renderer, controls;
+        let roomWidth = 5;
+        let roomDepth = 5;
+        let roomHeight = 3;
+        let floorMesh, wallNorth, wallEast, wallSouth, wallWest;
+        let placedObjects = [];
+        let selectedObject = null;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let isDragging = false;
+
+        // --- BAŞLANGIÇ ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initThree();
+            initCatalogUI();
+            updateRoomDimensions();
+            setupEventListeners();
+            animate();
+        });
+
+        // --- ÜÇ BOYUTLU STÜDYO SAHNE KURULUMU (MAT GRİ-SİYAH) ---
+        function initThree() {
+            const container = document.getElementById('canvasContainer');
+            scene = new THREE.Scene();
+            // Mat koyu gri/siyah stüdyo tonu
+            scene.background = new THREE.Color(0x0b0d10);
+
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(8, 7, 10);
+
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('renderCanvas'), antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.05;
+
+            // Sıcak ve Dengeli Koyu Stüdyo Işıklandırması
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffedd5, 0.9); // Hafif sıcak bronz tonlu ana ışık
+            dirLight.position.set(10, 16, 10);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.bias = -0.0005;
+            scene.add(dirLight);
+
+            const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.3); // Soğuk dolgu ışığı
+            fillLight.position.set(-10, 10, -10);
+            scene.add(fillLight);
+
+            const hemiLight = new THREE.HemisphereLight(0x1e293b, 0x090a0d, 0.5);
+            hemiLight.position.set(0, 10, 0);
+            scene.add(hemiLight);
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvasContainer');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // --- ODA OLUŞTURMA & GÜNCELLEME ---
+        function updateRoomDimensions() {
+            roomWidth = parseFloat(document.getElementById('roomWidthInput').value);
+            roomDepth = parseFloat(document.getElementById('roomDepthInput').value);
+            roomHeight = parseFloat(document.getElementById('roomHeightInput').value);
+
+            document.getElementById('widthVal').innerText = roomWidth;
+            document.getElementById('depthVal').innerText = roomDepth;
+            document.getElementById('heightVal').innerText = roomHeight;
+
+            const area = (roomWidth * roomDepth).toFixed(1);
+            document.getElementById('roomAreaDisplay').innerText = `${area} m² (${roomWidth}m x ${roomDepth}m)`;
+
+            if (floorMesh) scene.remove(floorMesh);
+            if (wallNorth) scene.remove(wallNorth);
+            if (wallEast) scene.remove(wallEast);
+            if (wallSouth) scene.remove(wallSouth);
+            if (wallWest) scene.remove(wallWest);
+
+            // Zemin (Varsayılan Meşe Parke)
+            const floorGeo = new THREE.PlaneGeometry(roomWidth, roomDepth);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.6 });
+            floorMesh = new THREE.Mesh(floorGeo, floorMat);
+            floorMesh.rotation.x = -Math.PI / 2;
+            floorMesh.receiveShadow = true;
+            scene.add(floorMesh);
+
+            // Duvarlar (Koyu Mat Antrasit / Gri-Siyah)
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x181b20, roughness: 0.9, side: THREE.DoubleSide });
+            
+            const wallNGeo = new THREE.PlaneGeometry(roomWidth, roomHeight);
+            wallNorth = new THREE.Mesh(wallNGeo, wallMat);
+            wallNorth.position.set(0, roomHeight / 2, -roomDepth / 2);
+            scene.add(wallNorth);
+
+            const wallSGeo = new THREE.PlaneGeometry(roomWidth, roomHeight);
+            wallSouth = new THREE.Mesh(wallSGeo, wallMat);
+            wallSouth.position.set(0, roomHeight / 2, roomDepth / 2);
+            wallSouth.rotation.y = Math.PI;
+            scene.add(wallSouth);
+
+            const wallEGeo = new THREE.PlaneGeometry(roomDepth, roomHeight);
+            wallEast = new THREE.Mesh(wallEGeo, wallMat);
+            wallEast.position.set(roomWidth / 2, roomHeight / 2, 0);
+            wallEast.rotation.y = -Math.PI / 2;
+            scene.add(wallEast);
+
+            const wallWGeo = new THREE.PlaneGeometry(roomDepth, roomHeight);
+            wallWest = new THREE.Mesh(wallWGeo, wallMat);
+            wallWest.position.set(-roomWidth / 2, roomHeight / 2, 0);
+            wallWest.rotation.y = Math.PI / 2;
+            scene.add(wallWest);
+        }
+
+        // --- ZEMİN & DUVAR RENK/KAPLAMA ---
+        function changeFloor(type) {
+            if (!floorMesh) return;
+            if (type === 'parke') {
+                floorMesh.material.color.setHex(0x92400e);
+                floorMesh.material.roughness = 0.5;
+            } else if (type === 'fayans') {
+                floorMesh.material.color.setHex(0x334155);
+                floorMesh.material.roughness = 0.2;
+            } else if (type === 'halı') {
+                floorMesh.material.color.setHex(0x1e293b);
+                floorMesh.material.roughness = 0.95;
+            }
+            showToast('Zemin kaplaması güncellendi.');
+        }
+
+        function changeWallColor(hexColor) {
+            const color = new THREE.Color(hexColor);
+            if (wallNorth) wallNorth.material.color = color;
+            if (wallEast) wallEast.material.color = color;
+            if (wallSouth) wallSouth.material.color = color;
+            if (wallWest) wallWest.material.color = color;
+            showToast('Duvar renk paleti güncellendi.');
+        }
+
+        // --- KATALOG ARAYÜZÜ ---
+        function initCatalogUI(filter = 'all', searchQuery = '') {
+            const listEl = document.getElementById('catalogList');
+            listEl.innerHTML = '';
+
+            let filtered = filter === 'all' ? catalogItems : catalogItems.filter(i => i.category === filter);
+            if (searchQuery.trim() !== '') {
+                const q = searchQuery.toLowerCase();
+                filtered = filtered.filter(i => i.name.toLowerCase().includes(q) || i.store.toLowerCase().includes(q));
+            }
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Aradığınız kriterlere uygun ürün bulunamadı.</p>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-[#121417] border border-[#262c36] rounded-xl p-3 flex flex-col space-y-2 hover:border-amber-500/50 transition shadow-sm group';
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="text-[10px] uppercase tracking-wider font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">${item.store}</span>
+                            <h4 class="font-medium text-xs text-slate-200 group-hover:text-amber-400 transition mt-1">${item.name}</h4>
+                        </div>
+                        <span class="font-bold text-xs text-emerald-400">${item.price.toLocaleString('tr-TR')} ₺</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-[#262c36]">
+                        <span><i class="fa-solid fa-ruler mr-1"></i>${item.dimensions}</span>
+                        <div class="flex items-center space-x-2">
+                            <a href="${item.link}" target="_blank" class="text-slate-500 hover:text-amber-400 p-1" title="Mağaza Sayfasına Git"><i class="fa-solid fa-external-link-alt"></i></a>
+                            <button onclick="addItemToRoom('${item.id}')" class="bg-amber-600 hover:bg-amber-500 text-slate-950 px-3 py-1 rounded-lg text-xs font-semibold transition shadow-sm flex items-center space-x-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                <span>Odaya Ekle</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        function filterCatalog(category) {
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-amber-500', 'text-slate-950', 'font-semibold', 'shadow-sm');
+                btn.classList.add('text-slate-400');
+            });
+            event.currentTarget.classList.add('bg-amber-500', 'text-slate-950', 'font-semibold', 'shadow-sm');
+            event.currentTarget.classList.remove('text-slate-400');
+            const q = document.getElementById('catalogSearch').value;
+            initCatalogUI(category, q);
+        }
+
+        function searchCatalog() {
+            const q = document.getElementById('catalogSearch').value;
+            let activeCat = 'all';
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.classList.contains('bg-amber-500')) {
+                    if (btn.innerText.includes('Oturma')) activeCat = 'oturma';
+                    else if (btn.innerText.includes('Yatak')) activeCat = 'yatak';
+                    else if (btn.innerText.includes('Dekor')) activeCat = 'dekor';
+                }
+            });
+            initCatalogUI(activeCat, q);
+        }
+
+        // --- GERÇEKÇİ DETAYLI PROCEDURAL 3D MOBİLYA MODELLERİ ---
+        function createRealisticFurnitureModel(type, colorHex) {
+            const group = new THREE.Group();
+            const mainMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.5 });
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.4 });
+            const darkWoodMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3 });
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8, roughness: 0.2 });
+            const pillowMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.8 });
+            const plantMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.6 });
+            const potMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.3 });
+
+            if (type === 'sofa') {
+                const baseGeo = new THREE.BoxGeometry(2.0, 0.45, 0.85);
+                const baseMesh = new THREE.Mesh(baseGeo, mainMat);
+                baseMesh.position.y = 0.225;
+                baseMesh.castShadow = true; baseMesh.receiveShadow = true;
+                group.add(baseMesh);
+
+                const backGeo = new THREE.BoxGeometry(2.0, 0.65, 0.25);
+                const backMesh = new THREE.Mesh(backGeo, mainMat);
+                backMesh.position.set(0, 0.725, -0.3);
+                backMesh.castShadow = true; backMesh.receiveShadow = true;
+                group.add(backMesh);
+
+                const armGeo = new THREE.BoxGeometry(0.25, 0.55, 0.85);
+                const lArm = new THREE.Mesh(armGeo, mainMat);
+                lArm.position.set(-1.05, 0.475, 0);
+                lArm.castShadow = true; lArm.receiveShadow = true;
+                group.add(lArm);
+
+                const rArm = new THREE.Mesh(armGeo, mainMat);
+                rArm.position.set(1.05, 0.475, 0);
+                rArm.castShadow = true; rArm.receiveShadow = true;
+                group.add(rArm);
+
+                const pGeo = new THREE.BoxGeometry(0.5, 0.5, 0.2);
+                const p1 = new THREE.Mesh(pGeo, pillowMat);
+                p1.position.set(-0.6, 0.7, -0.15);
+                p1.rotation.z = 0.2;
+                group.add(p1);
+
+                const p2 = new THREE.Mesh(pGeo, pillowMat);
+                p2.position.set(0.6, 0.7, -0.15);
+                p2.rotation.z = -0.2;
+                group.add(p2);
+
+                const legGeo = new THREE.CylinderGeometry(0.03, 0.015, 0.2, 8);
+                [-0.95, 0.95].forEach(x => {
+                    [-0.35, 0.35].forEach(z => {
+                        const leg = new THREE.Mesh(legGeo, woodMat);
+                        leg.position.set(x, 0.1, z);
+                        leg.castShadow = true;
+                        group.add(leg);
+                    });
+                });
+            } 
+            else if (type === 'l_sofa') {
+                const mainGeo = new THREE.BoxGeometry(2.2, 0.45, 0.9);
+                const mainMesh = new THREE.Mesh(mainGeo, mainMat);
+                mainMesh.position.set(0, 0.225, 0);
+                mainMesh.castShadow = true; mainMesh.receiveShadow = true;
+                group.add(mainMesh);
+
+                const lGeo = new THREE.BoxGeometry(0.9, 0.45, 1.6);
+                const lMesh = new THREE.Mesh(lGeo, mainMat);
+                lMesh.position.set(-0.65, 0.225, 0.75);
+                lMesh.castShadow = true; lMesh.receiveShadow = true;
+                group.add(lMesh);
+
+                const backGeo = new THREE.BoxGeometry(2.2, 0.65, 0.25);
+                const backMesh = new THREE.Mesh(backGeo, mainMat);
+                backMesh.position.set(0, 0.725, -0.325);
+                group.add(backMesh);
+            }
+            else if (type === 'armchair') {
+                const seatGeo = new THREE.BoxGeometry(0.85, 0.4, 0.85);
+                const seat = new THREE.Mesh(seatGeo, mainMat);
+                seat.position.y = 0.2;
+                seat.castShadow = true; seat.receiveShadow = true;
+                group.add(seat);
+
+                const backGeo = new THREE.BoxGeometry(0.85, 0.8, 0.25);
+                const back = new THREE.Mesh(backGeo, mainMat);
+                back.position.set(0, 0.75, -0.3);
+                group.add(back);
+
+                const legGeo = new THREE.CylinderGeometry(0.03, 0.015, 0.2, 8);
+                [-0.38, 0.38].forEach(x => {
+                    [-0.38, 0.38].forEach(z => {
+                        const leg = new THREE.Mesh(legGeo, woodMat);
+                        leg.position.set(x, 0.1, z);
+                        group.add(leg);
+                    });
+                });
+            }
+            else if (type === 'tv_unit') {
+                const bodyGeo = new THREE.BoxGeometry(1.8, 0.45, 0.45);
+                const body = new THREE.Mesh(bodyGeo, woodMat);
+                body.position.y = 0.35;
+                body.castShadow = true; body.receiveShadow = true;
+                group.add(body);
+
+                const tvGeo = new THREE.BoxGeometry(1.4, 0.8, 0.08);
+                const tv = new THREE.Mesh(tvGeo, darkWoodMat);
+                tv.position.set(0, 1.05, 0);
+                tv.castShadow = true;
+                group.add(tv);
+
+                const standGeo = new THREE.BoxGeometry(0.4, 0.05, 0.2);
+                const stand = new THREE.Mesh(standGeo, metalMat);
+                stand.position.set(0, 0.6, 0);
+                group.add(stand);
+            }
+            else if (type === 'coffee_table') {
+                const topGeo = new THREE.BoxGeometry(0.6, 0.06, 0.6);
+                const top = new THREE.Mesh(topGeo, woodMat);
+                top.position.y = 0.48;
+                top.castShadow = true; top.receiveShadow = true;
+                group.add(top);
+
+                const legGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.48, 8);
+                [-0.25, 0.25].forEach(x => {
+                    [-0.25, 0.25].forEach(z => {
+                        const leg = new THREE.Mesh(legGeo, metalMat);
+                        leg.position.set(x, 0.24, z);
+                        group.add(leg);
+                    });
+                });
+            }
+            else if (type === 'bed') {
+                const baseGeo = new THREE.BoxGeometry(1.6, 0.45, 2.0);
+                const base = new THREE.Mesh(baseGeo, mainMat);
+                base.position.y = 0.225;
+                base.castShadow = true; base.receiveShadow = true;
+                group.add(base);
+
+                const mattressGeo = new THREE.BoxGeometry(1.5, 0.25, 1.9);
+                const mattress = new THREE.Mesh(mattressGeo, pillowMat);
+                mattress.position.set(0, 0.475, 0.05);
+                group.add(mattress);
+
+                const headGeo = new THREE.BoxGeometry(1.7, 1.1, 0.15);
+                const head = new THREE.Mesh(headGeo, mainMat);
+                head.position.set(0, 0.55, -0.95);
+                group.add(head);
+            }
+            else if (type === 'nightstand') {
+                const nsGeo = new THREE.BoxGeometry(0.45, 0.5, 0.4);
+                const ns = new THREE.Mesh(nsGeo, woodMat);
+                ns.position.y = 0.25;
+                ns.castShadow = true; ns.receiveShadow = true;
+                group.add(ns);
+
+                const handleGeo = new THREE.BoxGeometry(0.1, 0.02, 0.02);
+                const handle = new THREE.Mesh(handleGeo, metalMat);
+                handle.position.set(0, 0.25, 0.21);
+                group.add(handle);
+            }
+            else if (type === 'desk') {
+                const deskTop = new THREE.BoxGeometry(1.2, 0.06, 0.6);
+                const top = new THREE.Mesh(deskTop, woodMat);
+                top.position.y = 0.74;
+                top.castShadow = true; top.receiveShadow = true;
+                group.add(top);
+
+                const legGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.74, 8);
+                [-0.52, 0.52].forEach(x => {
+                    [-0.24, 0.24].forEach(z => {
+                        const leg = new THREE.Mesh(legGeo, metalMat);
+                        leg.position.set(x, 0.37, z);
+                        group.add(leg);
+                    });
+                });
+            }
+            else if (type === 'bookshelf') {
+                const shelfGeo = new THREE.BoxGeometry(0.8, 1.7, 0.35);
+                const shelf = new THREE.Mesh(shelfGeo, darkWoodMat);
+                shelf.position.y = 0.85;
+                shelf.castShadow = true; shelf.receiveShadow = true;
+                group.add(shelf);
+            }
+            else if (type === 'rug') {
+                const rugGeo = new THREE.PlaneGeometry(2.0, 3.0);
+                const rug = new THREE.Mesh(rugGeo, mainMat);
+                rug.rotation.x = -Math.PI / 2;
+                rug.position.y = 0.005;
+                rug.receiveShadow = true;
+                group.add(rug);
+            }
+            else if (type === 'lamp') {
+                const poleGeo = new THREE.CylinderGeometry(0.02, 0.02, 1.8, 8);
+                const pole = new THREE.Mesh(poleGeo, metalMat);
+                pole.position.y = 0.9;
+                group.add(pole);
+
+                const capGeo = new THREE.ConeGeometry(0.25, 0.4, 16);
+                const cap = new THREE.Mesh(capGeo, mainMat);
+                cap.position.y = 1.6;
+                group.add(cap);
+            }
+            else if (type === 'plant') {
+                const potGeo = new THREE.CylinderGeometry(0.2, 0.15, 0.4, 12);
+                const pot = new THREE.Mesh(potGeo, potMat);
+                pot.position.y = 0.2;
+                group.add(pot);
+
+                const leafGeo = new THREE.SphereGeometry(0.3, 8, 8);
+                const leaves = new THREE.Mesh(leafGeo, plantMat);
+                leaves.position.y = 0.55;
+                group.add(leaves);
+            }
+            else {
+                const defaultGeo = new THREE.BoxGeometry(1, 1, 1);
+                const defaultMesh = new THREE.Mesh(defaultGeo, mainMat);
+                defaultMesh.position.y = 0.5;
+                group.add(defaultMesh);
+            }
+
+            return group;
+        }
+
+        // --- 3D SAHNEDE MOBİLYA OLUŞTURMA & EKLEME ---
+        function addItemToRoom(itemId) {
+            const data = catalogItems.find(i => i.id === itemId);
+            if (!data) return;
+
+            const modelGroup = createRealisticFurnitureModel(data.type, data.color);
+            modelGroup.position.set(0, 0, 0);
+
+            modelGroup.userData = {
+                instanceId: 'obj_' + Date.now(),
+                catalogId: data.id,
+                name: data.name,
+                store: data.store,
+                price: data.price,
+                dimensions: data.dimensions,
+                link: data.link
+            };
+
+            scene.add(modelGroup);
+            placedObjects.push(modelGroup);
+
+            updatePlacedObjectsUI();
+            updateCartUI();
+            selectObject(modelGroup);
+            showToast(`${data.name} odaya eklendi.`);
+        }
+
+        // --- ETKİLEŞİM & SÜRÜKLE BIRAK ---
+        function setupEventListeners() {
+            const canvas = renderer.domElement;
+
+            canvas.addEventListener('pointerdown', (e) => {
+                if (e.button !== 0) return;
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = ((e.clientX - rect.left) / canvas.clientWidth) * 2 - 1;
+                mouse.y = -((e.clientY - rect.top) / canvas.clientHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(scene.children, true);
+
+                let clickedGroup = null;
+                for (let hit of intersects) {
+                    let obj = hit.object;
+                    while (obj.parent && obj.parent !== scene) {
+                        obj = obj.parent;
+                    }
+                    if (placedObjects.includes(obj)) {
+                        clickedGroup = obj;
+                        break;
+                    }
+                }
+
+                if (clickedGroup) {
+                    controls.enabled = false;
+                    isDragging = true;
+                    selectObject(clickedGroup);
+                } else {
+                    const floorIntersect = raycaster.intersectObject(floorMesh);
+                    if (floorIntersect.length === 0) {
+                        deselectCurrentObject();
+                    }
+                }
+            });
+
+            canvas.addEventListener('pointermove', (e) => {
+                if (!isDragging || !selectedObject) return;
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = ((e.clientX - rect.left) / canvas.clientWidth) * 2 - 1;
+                mouse.y = -((e.clientY - rect.top) / canvas.clientHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObject(floorMesh);
+
+                if (intersects.length > 0) {
+                    selectedObject.position.x = intersects[0].point.x;
+                    selectedObject.position.z = intersects[0].point.z;
+                }
+            });
+
+            canvas.addEventListener('pointerup', () => {
+                isDragging = false;
+                controls.enabled = true;
+            });
+        }
+
+        function selectObject(groupObj) {
+            selectedObject = groupObj;
+            document.getElementById('selectedObjTitle').innerText = groupObj.userData.name;
+            document.getElementById('selectedObjStore').innerText = groupObj.userData.store;
+            document.getElementById('selectedObjDimensions').innerText = groupObj.userData.dimensions;
+            document.getElementById('selectedObjPrice').innerText = groupObj.userData.price.toLocaleString('tr-TR') + ' ₺';
+            document.getElementById('selectedObjLink').href = groupObj.userData.link;
+            document.getElementById('selectedObjectPanel').classList.remove('hidden');
+        }
+
+        function deselectCurrentObject() {
+            selectedObject = null;
+            document.getElementById('selectedObjectPanel').classList.add('hidden');
+        }
+
+        function rotateSelectedObject() {
+            if (!selectedObject) return;
+            selectedObject.rotation.y += Math.PI / 2;
+            showToast('Eşya 90 derece döndürüldü.');
+        }
+
+        function deleteSelectedObject() {
+            if (!selectedObject) return;
+            scene.remove(selectedObject);
+            placedObjects = placedObjects.filter(o => o !== selectedObject);
+            deselectCurrentObject();
+            updatePlacedObjectsUI();
+            updateCartUI();
+            showToast('Eşya odadan kaldırıldı.');
+        }
+
+        // --- SEKME & PANEL YÖNETİMİ ---
+        function switchTab(tabName) {
+            document.getElementById('tabCatalog').classList.add('hidden');
+            document.getElementById('tabRoom').classList.add('hidden');
+            document.getElementById('tabObjects').classList.add('hidden');
+
+            document.getElementById('btnTabCatalog').className = "flex-1 py-3 text-xs font-medium text-slate-400 hover:text-slate-200 transition border-b-2 border-transparent";
+            document.getElementById('btnTabRoom').className = "flex-1 py-3 text-xs font-medium text-slate-400 hover:text-slate-200 transition border-b-2 border-transparent";
+            document.getElementById('btnTabObjects').className = "flex-1 py-3 text-xs font-medium text-slate-400 hover:text-slate-200 transition border-b-2 border-transparent";
+
+            if (tabName === 'catalog') {
+                document.getElementById('tabCatalog').classList.remove('hidden');
+                document.getElementById('btnTabCatalog').className = "flex-1 py-3 text-xs font-semibold text-amber-400 border-b-2 border-amber-500 transition";
+            } else if (tabName === 'room') {
+                document.getElementById('tabRoom').classList.remove('hidden');
+                document.getElementById('btnTabRoom').className = "flex-1 py-3 text-xs font-semibold text-amber-400 border-b-2 border-amber-500 transition";
+            } else if (tabName === 'objects') {
+                document.getElementById('tabObjects').classList.remove('hidden');
+                document.getElementById('btnTabObjects').className = "flex-1 py-3 text-xs font-semibold text-amber-400 border-b-2 border-amber-500 transition";
+            }
+        }
+
+        function updatePlacedObjectsUI() {
+            const listEl = document.getElementById('placedObjectsList');
+            listEl.innerHTML = '';
+            document.getElementById('totalItemsDisplay').innerText = `${placedObjects.length} Adet`;
+
+            if (placedObjects.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">Odanıza henüz eşya eklenmedi.</p>`;
+                return;
+            }
+
+            placedObjects.forEach((obj, index) => {
+                const item = document.createElement('div');
+                item.className = 'bg-[#121417] border border-[#262c36] rounded-xl p-3 flex items-center justify-between text-xs';
+                item.innerHTML = `
+                    <div>
+                        <p class="font-medium text-slate-200">${obj.userData.name}</p>
+                        <p class="text-[10px] text-slate-400">${obj.userData.store} - ${obj.userData.price.toLocaleString('tr-TR')} ₺</p>
+                    </div>
+                    <button onclick="removePlacedObjectByIndex(${index})" class="text-rose-400 hover:text-rose-300 p-2"><i class="fa-solid fa-trash"></i></button>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        function removePlacedObjectByIndex(index) {
+            const obj = placedObjects[index];
+            if (obj) {
+                if (selectedObject === obj) deselectCurrentObject();
+                scene.remove(obj);
+                placedObjects.splice(index, 1);
+                updatePlacedObjectsUI();
+                updateCartUI();
+                showToast('Eşya kaldırıldı.');
+            }
+        }
+
+        function updateCartUI() {
+            const cartList = document.getElementById('cartItemsList');
+            cartList.innerHTML = '';
+            document.getElementById('cartCount').innerText = placedObjects.length;
+
+            if (placedObjects.length === 0) {
+                cartList.innerHTML = `<p class="text-sm text-slate-500 text-center py-8">Alışveriş sepetiniz boş.</p>`;
+                document.getElementById('cartTotalPrice').innerText = '0 ₺';
+                return;
+            }
+
+            let total = 0;
+            placedObjects.forEach(obj => {
+                total += obj.userData.price;
+                const row = document.createElement('div');
+                row.className = 'bg-[#121417] border border-[#262c36] rounded-xl p-3.5 flex items-center justify-between text-sm';
+                row.innerHTML = `
+                    <div class="space-y-0.5">
+                        <span class="text-[10px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">${obj.userData.store}</span>
+                        <h4 class="font-medium text-slate-200 text-xs mt-1">${obj.userData.name}</h4>
+                        <a href="${obj.userData.link}" target="_blank" class="text-[11px] text-amber-400 hover:underline flex items-center space-x-1 pt-0.5">
+                            <span>Mağaza Sayfasına Git</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                        </a>
+                    </div>
+                    <span class="font-bold text-emerald-400 text-sm">${obj.userData.price.toLocaleString('tr-TR')} ₺</span>
+                `;
+                cartList.appendChild(row);
+            });
+
+            document.getElementById('cartTotalPrice').innerText = total.toLocaleString('tr-TR') + ' ₺';
+        }
+
+        function checkoutCart() {
+            if (placedObjects.length === 0) {
+                showToast('Sepetinizde ürün bulunmuyor.');
+                return;
+            }
+            showToast('Mağaza alışveriş sekmeleri açılıyor...');
+            const links = [...new Set(placedObjects.map(o => o.userData.link))];
+            links.forEach(link => window.open(link, '_blank'));
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            if (modalId === 'cartModal') updateCartUI();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('messageToast');
+            document.getElementById('toastText').innerText = text;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // --- ANİMASYON DÖNGÜSÜ ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
